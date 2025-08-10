@@ -8,12 +8,65 @@ namespace adb_tool
         private double currentY = 0;
         private int screenWidth = 1220;
         private int screenHeight = 2712;
+        
+        // Auto capture variables
+        private bool isAutoCaptureEnabled = false;
+        private int autoCaptureInterval = 5000; // 5 seconds default
+        private int countdownSeconds = 0;
+        
+        // Menu components - now using Designer controls
 
         public Form1()
         {
             InitializeComponent();
+            InitializeAutoCapture();
             InitializeEvents();
             LoadSampleImage();
+        }
+
+        // Menu event handlers
+        private void enableAutoCaptureModeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            EnableAutoCaptureModeMenuItem_Click(sender, e);
+        }
+
+        private void disableAutoCaptureModeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            DisableAutoCaptureModeMenuItem_Click(sender, e);
+        }
+
+        private void interval3sToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SetAutoCaptureInterval(3000, "3 seconds");
+        }
+
+        private void interval5sToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SetAutoCaptureInterval(5000, "5 seconds");
+        }
+
+        private void interval10sToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SetAutoCaptureInterval(10000, "10 seconds");
+        }
+
+        private void InitializeAutoCapture()
+        {
+            // Main auto capture timer
+            autoCaptureTimer = new System.Windows.Forms.Timer();
+            autoCaptureTimer.Interval = autoCaptureInterval;
+            autoCaptureTimer.Tick += AutoCaptureTimer_Tick;
+            
+            // Countdown timer (updates every second)
+            countdownTimer = new System.Windows.Forms.Timer();
+            countdownTimer.Interval = 1000; // 1 second
+            countdownTimer.Tick += CountdownTimer_Tick;
+            
+            // Setup progress bar (already created in Designer)
+            autoCaptureProgressBar.Style = ProgressBarStyle.Continuous;
+            autoCaptureProgressBar.Minimum = 0;
+            autoCaptureProgressBar.Maximum = autoCaptureInterval / 1000;
+            autoCaptureProgressBar.Value = 0;
         }
 
         private void InitializeEvents()
@@ -585,6 +638,178 @@ namespace adb_tool
             if (result == DialogResult.Yes)
             {
                 ExecuteTapCommand(selectedDevice, currentX, currentY);
+            }
+        }
+
+        // Auto Capture Event Handlers
+        private void EnableAutoCaptureModeMenuItem_Click(object sender, EventArgs e)
+        {
+            string selectedDevice = deviceComboBox.SelectedItem?.ToString();
+            if (string.IsNullOrEmpty(selectedDevice))
+            {
+                MessageBox.Show("Vui lòng chọn thiết bị ADB trước khi bật Auto Capture!", "Chưa chọn thiết bị", 
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            isAutoCaptureEnabled = true;
+            countdownSeconds = autoCaptureInterval / 1000;
+            
+            // Setup progress bar
+            autoCaptureProgressBar.Maximum = autoCaptureInterval / 1000;
+            autoCaptureProgressBar.Value = 0;
+            autoCaptureProgressBar.Visible = true;
+            
+            // Start timers
+            autoCaptureTimer.Start();
+            countdownTimer.Start();
+            
+            // Update menu text
+            enableAutoCaptureModeToolStripMenuItem.Text = "✅ Enable Auto Capture (ACTIVE)";
+            disableAutoCaptureModeToolStripMenuItem.Text = "❌ Disable Auto Capture";
+            
+            // Update capture button
+            captureButton.Text = $"📷\nAuto ({autoCaptureInterval/1000}s)";
+            captureButton.BackColor = Color.Green;
+            
+            // Update status
+            autoCaptureStatusLabel.Text = $"Auto Capture: ACTIVE - Next capture in {countdownSeconds} seconds";
+            autoCaptureStatusLabel.ForeColor = Color.LightGreen;
+            
+            MessageBox.Show($"Auto Capture đã được BẬT!\nKhoảng cách: {autoCaptureInterval/1000} giây\nThiết bị: {selectedDevice}", 
+                "Auto Capture Active", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void DisableAutoCaptureModeMenuItem_Click(object sender, EventArgs e)
+        {
+            isAutoCaptureEnabled = false;
+            autoCaptureTimer.Stop();
+            countdownTimer.Stop();
+            
+            // Hide progress bar and reset
+            autoCaptureProgressBar.Visible = false;
+            autoCaptureProgressBar.Value = 0;
+            
+            // Update menu text
+            enableAutoCaptureModeToolStripMenuItem.Text = "✅ Enable Auto Capture";
+            disableAutoCaptureModeToolStripMenuItem.Text = "❌ Disable Auto Capture (INACTIVE)";
+            
+            // Update capture button
+            captureButton.Text = "📷\nCapture";
+            captureButton.BackColor = Color.RoyalBlue;
+            
+            // Update status
+            autoCaptureStatusLabel.Text = "Auto Capture: Disabled";
+            autoCaptureStatusLabel.ForeColor = Color.White;
+            
+            // Reset title
+            this.Text = "ADB Capture - Created by K9 from Kteam";
+            
+            MessageBox.Show("Auto Capture đã được TẮT!", "Auto Capture Disabled", 
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void SetAutoCaptureInterval(int intervalMs, string intervalText)
+        {
+            autoCaptureInterval = intervalMs;
+            autoCaptureTimer.Interval = intervalMs;
+            
+            // Update progress bar maximum
+            autoCaptureProgressBar.Maximum = intervalMs / 1000;
+            
+            // Update menu checkmarks
+            interval3sToolStripMenuItem.Text = "3 seconds";
+            interval5sToolStripMenuItem.Text = "5 seconds";
+            interval10sToolStripMenuItem.Text = "10 seconds";
+            
+            if (intervalMs == 3000) interval3sToolStripMenuItem.Text = "3 seconds ✓";
+            else if (intervalMs == 5000) interval5sToolStripMenuItem.Text = "5 seconds ✓";
+            else if (intervalMs == 10000) interval10sToolStripMenuItem.Text = "10 seconds ✓";
+            
+            // Update capture button if auto capture is active
+            if (isAutoCaptureEnabled)
+            {
+                captureButton.Text = $"📷\nAuto ({intervalMs/1000}s)";
+                // Reset countdown
+                countdownSeconds = intervalMs / 1000;
+                autoCaptureProgressBar.Value = 0;
+            }
+            
+            MessageBox.Show($"Auto Capture interval đã được đặt thành: {intervalText}", 
+                "Interval Updated", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void CountdownTimer_Tick(object sender, EventArgs e)
+        {
+            if (!isAutoCaptureEnabled) return;
+            
+            countdownSeconds--;
+            
+            // Update progress bar (reverse countdown)
+            int maxSeconds = autoCaptureInterval / 1000;
+            autoCaptureProgressBar.Value = maxSeconds - countdownSeconds;
+            
+            // Update status label
+            if (countdownSeconds > 0)
+            {
+                autoCaptureStatusLabel.Text = $"Auto Capture: ACTIVE - Next capture in {countdownSeconds} seconds";
+                autoCaptureStatusLabel.ForeColor = Color.LightGreen;
+            }
+            else
+            {
+                autoCaptureStatusLabel.Text = "Auto Capture: ACTIVE - Capturing now...";
+                autoCaptureStatusLabel.ForeColor = Color.Yellow;
+                // Reset countdown for next cycle
+                countdownSeconds = autoCaptureInterval / 1000;
+                autoCaptureProgressBar.Value = 0;
+            }
+        }
+
+        private void AutoCaptureTimer_Tick(object sender, EventArgs e)
+        {
+            if (!isAutoCaptureEnabled) return;
+            
+            string selectedDevice = deviceComboBox.SelectedItem?.ToString();
+            if (string.IsNullOrEmpty(selectedDevice))
+            {
+                // Stop auto capture if no device selected
+                DisableAutoCaptureModeMenuItem_Click(null, null);
+                MessageBox.Show("Auto Capture đã bị tắt vì không có thiết bị được chọn!", 
+                    "Auto Capture Stopped", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            try
+            {
+                // Perform auto capture
+                CaptureScreen();
+                
+                // Update title to show last capture time
+                this.Text = $"ADB Capture - Created by K9 from Kteam [Auto: {DateTime.Now:HH:mm:ss}]";
+            }
+            catch (Exception ex)
+            {
+                // Stop auto capture on error
+                DisableAutoCaptureModeMenuItem_Click(null, null);
+                MessageBox.Show($"Auto Capture đã bị tắt do lỗi:\n{ex.Message}", 
+                    "Auto Capture Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        // Dispose method is handled in Designer.cs
+        private void DisposeTimers()
+        {
+            // Stop and dispose timers
+            if (autoCaptureTimer != null)
+            {
+                autoCaptureTimer.Stop();
+                autoCaptureTimer.Dispose();
+            }
+            
+            if (countdownTimer != null)
+            {
+                countdownTimer.Stop();
+                countdownTimer.Dispose();
             }
         }
     }

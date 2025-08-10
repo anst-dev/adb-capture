@@ -13,9 +13,25 @@
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
-            if (disposing && (components != null))
+            if (disposing)
             {
-                components.Dispose();
+                // Stop and dispose timers
+                if (autoCaptureTimer != null)
+                {
+                    autoCaptureTimer.Stop();
+                    autoCaptureTimer.Dispose();
+                }
+                
+                if (countdownTimer != null)
+                {
+                    countdownTimer.Stop();
+                    countdownTimer.Dispose();
+                }
+                
+                if (components != null)
+                {
+                    components.Dispose();
+                }
             }
             base.Dispose(disposing);
         }
@@ -28,6 +44,18 @@
         /// </summary>
         private void InitializeComponent()
         {
+            menuStrip1 = new MenuStrip();
+            settingsToolStripMenuItem = new ToolStripMenuItem();
+            autoCaptureModeToolStripMenuItem = new ToolStripMenuItem();
+            enableAutoCaptureModeToolStripMenuItem = new ToolStripMenuItem();
+            disableAutoCaptureModeToolStripMenuItem = new ToolStripMenuItem();
+            toolStripSeparator1 = new ToolStripSeparator();
+            autoCaptureIntervalToolStripMenuItem = new ToolStripMenuItem();
+            interval3sToolStripMenuItem = new ToolStripMenuItem();
+            interval5sToolStripMenuItem = new ToolStripMenuItem();
+            interval10sToolStripMenuItem = new ToolStripMenuItem();
+            autoCaptureProgressBar = new ProgressBar();
+            autoCaptureStatusLabel = new Label();
             deviceScreenPanel = new Panel();
             deviceScreenPictureBox = new PictureBox();
             rightPanel = new Panel();
@@ -56,6 +84,7 @@
             yPercentValueLabel = new Label();
             clickPercentButton = new Button();
             percentTextBox = new TextBox();
+            menuStrip1.SuspendLayout();
             deviceScreenPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)deviceScreenPictureBox).BeginInit();
             rightPanel.SuspendLayout();
@@ -65,15 +94,105 @@
             percentGroupBox.SuspendLayout();
             SuspendLayout();
             // 
+            // menuStrip1
+            // 
+            menuStrip1.Items.AddRange(new ToolStripItem[] { settingsToolStripMenuItem });
+            menuStrip1.Location = new Point(0, 0);
+            menuStrip1.Name = "menuStrip1";
+            menuStrip1.Size = new Size(950, 24);
+            menuStrip1.TabIndex = 0;
+            menuStrip1.Text = "menuStrip1";
+            // 
+            // settingsToolStripMenuItem
+            // 
+            settingsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { autoCaptureModeToolStripMenuItem, toolStripSeparator1, autoCaptureIntervalToolStripMenuItem });
+            settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
+            settingsToolStripMenuItem.Size = new Size(61, 20);
+            settingsToolStripMenuItem.Text = "Settings";
+            // 
+            // autoCaptureModeToolStripMenuItem
+            // 
+            autoCaptureModeToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { enableAutoCaptureModeToolStripMenuItem, disableAutoCaptureModeToolStripMenuItem });
+            autoCaptureModeToolStripMenuItem.Name = "autoCaptureModeToolStripMenuItem";
+            autoCaptureModeToolStripMenuItem.Size = new Size(180, 22);
+            autoCaptureModeToolStripMenuItem.Text = "Auto Capture Mode";
+            // 
+            // enableAutoCaptureModeToolStripMenuItem
+            // 
+            enableAutoCaptureModeToolStripMenuItem.Name = "enableAutoCaptureModeToolStripMenuItem";
+            enableAutoCaptureModeToolStripMenuItem.Size = new Size(180, 22);
+            enableAutoCaptureModeToolStripMenuItem.Text = "✅ Enable Auto Capture";
+            enableAutoCaptureModeToolStripMenuItem.Click += enableAutoCaptureModeToolStripMenuItem_Click;
+            // 
+            // disableAutoCaptureModeToolStripMenuItem
+            // 
+            disableAutoCaptureModeToolStripMenuItem.Name = "disableAutoCaptureModeToolStripMenuItem";
+            disableAutoCaptureModeToolStripMenuItem.Size = new Size(180, 22);
+            disableAutoCaptureModeToolStripMenuItem.Text = "❌ Disable Auto Capture";
+            disableAutoCaptureModeToolStripMenuItem.Click += disableAutoCaptureModeToolStripMenuItem_Click;
+            // 
+            // toolStripSeparator1
+            // 
+            toolStripSeparator1.Name = "toolStripSeparator1";
+            toolStripSeparator1.Size = new Size(177, 6);
+            // 
+            // autoCaptureIntervalToolStripMenuItem
+            // 
+            autoCaptureIntervalToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { interval3sToolStripMenuItem, interval5sToolStripMenuItem, interval10sToolStripMenuItem });
+            autoCaptureIntervalToolStripMenuItem.Name = "autoCaptureIntervalToolStripMenuItem";
+            autoCaptureIntervalToolStripMenuItem.Size = new Size(180, 22);
+            autoCaptureIntervalToolStripMenuItem.Text = "Auto Capture Interval";
+            // 
+            // interval3sToolStripMenuItem
+            // 
+            interval3sToolStripMenuItem.Name = "interval3sToolStripMenuItem";
+            interval3sToolStripMenuItem.Size = new Size(180, 22);
+            interval3sToolStripMenuItem.Text = "3 seconds";
+            interval3sToolStripMenuItem.Click += interval3sToolStripMenuItem_Click;
+            // 
+            // interval5sToolStripMenuItem
+            // 
+            interval5sToolStripMenuItem.Name = "interval5sToolStripMenuItem";
+            interval5sToolStripMenuItem.Size = new Size(180, 22);
+            interval5sToolStripMenuItem.Text = "5 seconds ✓";
+            interval5sToolStripMenuItem.Click += interval5sToolStripMenuItem_Click;
+            // 
+            // interval10sToolStripMenuItem
+            // 
+            interval10sToolStripMenuItem.Name = "interval10sToolStripMenuItem";
+            interval10sToolStripMenuItem.Size = new Size(180, 22);
+            interval10sToolStripMenuItem.Text = "10 seconds";
+            interval10sToolStripMenuItem.Click += interval10sToolStripMenuItem_Click;
+            // 
+            // autoCaptureProgressBar
+            // 
+            autoCaptureProgressBar.Location = new Point(12, 790);
+            autoCaptureProgressBar.Name = "autoCaptureProgressBar";
+            autoCaptureProgressBar.Size = new Size(918, 20);
+            autoCaptureProgressBar.TabIndex = 6;
+            autoCaptureProgressBar.Visible = false;
+            // 
+            // autoCaptureStatusLabel
+            // 
+            autoCaptureStatusLabel.BackColor = Color.Transparent;
+            autoCaptureStatusLabel.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold);
+            autoCaptureStatusLabel.ForeColor = Color.White;
+            autoCaptureStatusLabel.Location = new Point(12, 815);
+            autoCaptureStatusLabel.Name = "autoCaptureStatusLabel";
+            autoCaptureStatusLabel.Size = new Size(918, 20);
+            autoCaptureStatusLabel.TabIndex = 7;
+            autoCaptureStatusLabel.Text = "Auto Capture: Disabled";
+            autoCaptureStatusLabel.TextAlign = ContentAlignment.MiddleCenter;
+            // 
             // deviceScreenPanel
             // 
             deviceScreenPanel.BackColor = Color.White;
             deviceScreenPanel.BorderStyle = BorderStyle.FixedSingle;
             deviceScreenPanel.Controls.Add(deviceScreenPictureBox);
-            deviceScreenPanel.Location = new Point(12, 12);
+            deviceScreenPanel.Location = new Point(12, 35);
             deviceScreenPanel.Name = "deviceScreenPanel";
             deviceScreenPanel.Size = new Size(500, 750);
-            deviceScreenPanel.TabIndex = 0;
+            deviceScreenPanel.TabIndex = 1;
             // 
             // deviceScreenPictureBox
             // 
@@ -94,10 +213,10 @@
             rightPanel.Controls.Add(screenResolutionGroupBox);
             rightPanel.Controls.Add(coordinatesGroupBox);
             rightPanel.Controls.Add(percentGroupBox);
-            rightPanel.Location = new Point(530, 12);
+            rightPanel.Location = new Point(530, 35);
             rightPanel.Name = "rightPanel";
             rightPanel.Size = new Size(400, 750);
-            rightPanel.TabIndex = 1;
+            rightPanel.TabIndex = 2;
             // 
             // deviceComboBox
             // 
@@ -413,14 +532,20 @@
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(45, 66, 135);
-            ClientSize = new Size(1051, 841);
+            ClientSize = new Size(950, 850);
+            Controls.Add(autoCaptureStatusLabel);
+            Controls.Add(autoCaptureProgressBar);
             Controls.Add(rightPanel);
             Controls.Add(deviceScreenPanel);
+            Controls.Add(menuStrip1);
             FormBorderStyle = FormBorderStyle.FixedSingle;
+            MainMenuStrip = menuStrip1;
             MaximizeBox = false;
             Name = "Form1";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "ADB Capture - Created by K9 from Kteam";
+            menuStrip1.ResumeLayout(false);
+            menuStrip1.PerformLayout();
             deviceScreenPanel.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)deviceScreenPictureBox).EndInit();
             rightPanel.ResumeLayout(false);
@@ -432,6 +557,7 @@
             percentGroupBox.ResumeLayout(false);
             percentGroupBox.PerformLayout();
             ResumeLayout(false);
+            PerformLayout();
 
         }
 
@@ -465,5 +591,19 @@
         private System.Windows.Forms.Label yPercentValueLabel;
         private System.Windows.Forms.Button clickPercentButton;
         private System.Windows.Forms.TextBox percentTextBox;
+        private MenuStrip menuStrip1;
+        private ToolStripMenuItem settingsToolStripMenuItem;
+        private ToolStripMenuItem autoCaptureModeToolStripMenuItem;
+        private ToolStripMenuItem enableAutoCaptureModeToolStripMenuItem;
+        private ToolStripMenuItem disableAutoCaptureModeToolStripMenuItem;
+        private ToolStripSeparator toolStripSeparator1;
+        private ToolStripMenuItem autoCaptureIntervalToolStripMenuItem;
+        private ToolStripMenuItem interval3sToolStripMenuItem;
+        private ToolStripMenuItem interval5sToolStripMenuItem;
+        private ToolStripMenuItem interval10sToolStripMenuItem;
+        private ProgressBar autoCaptureProgressBar;
+        private Label autoCaptureStatusLabel;
+        private System.Windows.Forms.Timer autoCaptureTimer;
+        private System.Windows.Forms.Timer countdownTimer;
     }
 }
