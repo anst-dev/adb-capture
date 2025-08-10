@@ -1,0 +1,25 @@
+﻿# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vscode/
+
+# Build output
+x64/
+x86/
+[Rr]elease*/
+[Dd]ebug*/
+
+# NuGet / test / cache
+packages/
+TestResults/
+*.nupkg
+*.snupkg
+*.cache/
+*.log
+.agent.md
+# Rider/Resharper (nếu có)
+.idea/
+*.DotSettings.user
